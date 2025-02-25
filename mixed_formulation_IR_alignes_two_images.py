@@ -1,3 +1,11 @@
+"""
+mixed_formulation_IR.py
+
+# Alignes two given images by computing the optimal mapping assiciated to the Monge-Ampere equation
+# using the Picard BFO algorithm
+
+@author : M. BAHARI
+"""
 
 from   simplines                    import compile_kernel
 from   simplines                    import SplineSpace
