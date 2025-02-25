@@ -169,3 +169,7 @@ cython_debug/
 
 # PyPI configuration file
 .pypirc
+[figs]
+[__pycache__]
+[__pyccel__]
+[__epyccel__]
