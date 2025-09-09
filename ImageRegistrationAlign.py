@@ -7,31 +7,26 @@ ImageRegistrationAlign.py
 @author : M. BAHARI
 """
 
-from   simplines                    import compile_kernel
-from   simplines                    import SplineSpace
-from   simplines                    import TensorSpace
-from   simplines                    import StencilMatrix
-from   simplines                    import StencilVector
-from   simplines                    import pyccel_sol_field_2d
-from   simplines                    import quadratures_in_admesh
+from   pyrefiga                    import compile_kernel
+from   pyrefiga                    import SplineSpace
+from   pyrefiga                    import TensorSpace
+from   pyrefiga                    import StencilMatrix
+from   pyrefiga                    import StencilVector
+from   pyrefiga                    import pyccel_sol_field_2d
+from   pyrefiga                    import quadratures_in_admesh
+from   pyrefiga                    import assemble_stiffness1D
+from   pyrefiga                    import assemble_mass1D
+from   pyrefiga                    import assemble_matrix_ex01
+from   pyrefiga                    import assemble_matrix_ex02
 #.. Prologation by knots insertion matrix
-from   simplines                    import prolongation_matrix
+from   pyrefiga                    import prolongation_matrix
 # ... Using Kronecker algebra accelerated with Pyccel
-from   simplines                    import Poisson
+from   pyrefiga                    import Poisson
 #--- Image registration
 from   interpolimage import         image_in_quadraturpoints
 from   interpolimage import         image_in_uniformpoints
-
-from gallery_section_21 import assemble_stiffnessmatrix1D
-from gallery_section_21 import assemble_massmatrix1D
-from gallery_section_21 import assemble_matrix_ex11
-from gallery_section_21 import assemble_matrix_ex12
+#...
 from gallery_section_21 import assemble_Quality_ex01
-
-assemble_stiffness1D = compile_kernel( assemble_stiffnessmatrix1D, arity=2)
-assemble_mass1D      = compile_kernel( assemble_massmatrix1D, arity=2)
-assemble_matrix_ex01 = compile_kernel(assemble_matrix_ex11, arity=1)
-assemble_matrix_ex02 = compile_kernel(assemble_matrix_ex12, arity=1)
 assemble_Quality     = compile_kernel(assemble_Quality_ex01, arity=1)
 
 #---mae : In Monge-Ampere equation
@@ -494,32 +489,32 @@ if False :
 #---print errror results
 #~~~~~~~~~~~~
 if False :
-	# ... new discretization for plot
-	nbpts           = 400
-	print("	\subcaption{Degree $p =",degree,"$}")
-	print("	\\begin{tabular}{r c c c c c}")
-	print("		\hline")
-	print("		$\#$cells & CPU-time (s) & N-iter  & Qual &$\min~\\text{Jac}(\PsiPsi)$ &$\max ~\\text{Jac}(\PsiPsi)$\\\\")
-	print("		\hline")
-	if True :
-	   #---Compute a solution
-	   Xmae,uxx,uxy, X, Y = pyccel_sol_field_2d((nbpts,nbpts),  x11_mae , V01.knots, V01.degree)
-	   Ymae,uyx,uyy       = pyccel_sol_field_2d((nbpts,nbpts),  x12_mae , V10.knots, V10.degree)[0:3]
+   # ... new discretization for plot
+   nbpts           = 400
+   print("	\subcaption{Degree $p =",degree,"$}")
+   print("	\\begin{tabular}{r c c c c c}")
+   print("		\hline")
+   print("		$\#$cells & CPU-time (s) & N-iter  & Qual &$\min~\\text{Jac}(\PsiPsi)$ &$\max ~\\text{Jac}(\PsiPsi)$\\\\")
+   print("		\hline")
+   if True :
+      #---Compute a solution
+      Xmae,uxx,uxy, X, Y = pyccel_sol_field_2d((nbpts,nbpts),  x11_mae , V01.knots, V01.degree)
+      Ymae,uyx,uyy       = pyccel_sol_field_2d((nbpts,nbpts),  x12_mae , V10.knots, V10.degree)[0:3]
 
-	   # ... Jacobian function of Optimal mapping
-	   det = uxx*uyy-uxy*uyx
-	   # ...
-	   det_min          = np.min( det[1:-1,1:-1])
-	   det_max          = np.max( det[1:-1,1:-1])
-	   # ... scientific format
-	   l2_displacement  = np.format_float_scientific( l2_displacement, unique=False, precision=3)
-	   MG_time          = round(start0, 3)
-	   det_min          = np.format_float_scientific(det_min, unique=False, precision=3)
-	   det_max          = np.format_float_scientific(det_max, unique=False, precision=3)
-	   print("		",nelements, "&", MG_time, "&", n_ite+1, "&", l2_displacement, "&", det_min, "&", det_max,"\\\\")
-	print("		\hline")
-	print("	\end{tabular}")
-	print('\n')
+      # ... Jacobian function of Optimal mapping
+      det = uxx*uyy-uxy*uyx
+      # ...
+      det_min          = np.min( det[1:-1,1:-1])
+      det_max          = np.max( det[1:-1,1:-1])
+      # ... scientific format
+      l2_displacement  = np.format_float_scientific( l2_displacement, unique=False, precision=3)
+      MG_time          = round(start0, 3)
+      det_min          = np.format_float_scientific(det_min, unique=False, precision=3)
+      det_max          = np.format_float_scientific(det_max, unique=False, precision=3)
+      print("		",nelements, "&", MG_time, "&", n_ite+1, "&", l2_displacement, "&", det_min, "&", det_max,"\\\\")
+   print("		\hline")
+   print("	\end{tabular}")
+   print('\n')
 
 
 
@@ -642,50 +637,50 @@ plt.show(block=False)
 plt.close()
 '''
 if Geometry is True :
-	fig =plt.figure() 
-	for i in range(nbpts):
-	   phidx = sX[:,i]
-	   phidy = sY[:,i]
+   fig =plt.figure() 
+   for i in range(nbpts):
+      phidx = sX[:,i]
+      phidy = sY[:,i]
 
-	   plt.plot(phidx, phidy, '-k', linewidth = 0.25)
-	for i in range(nbpts):
-	   phidx = sX[i,:]
-	   phidy = sY[i,:]
+      plt.plot(phidx, phidy, '-k', linewidth = 0.25)
+   for i in range(nbpts):
+      phidx = sX[i,:]
+      phidy = sY[i,:]
 
-	   plt.plot(phidx, phidy, '-k', linewidth = 0.25)
-	#plt.plot(u11_pH.toarray(), u12_pH.toarray(), 'ro', markersize=3.5)
-	#~~~~~~~~~~~~~~~~~~~~
-	#.. Plot the surface
-	phidx = sX[:,0]
-	phidy = sY[:,0]
-	plt.plot(phidx, phidy, 'm', linewidth=2., label = '$Im([0,1]^2_{y=0})$')
-	# ...
-	phidx = sX[:,nbpts-1]
-	phidy = sY[:,nbpts-1]
-	plt.plot(phidx, phidy, 'b', linewidth=2. ,label = '$Im([0,1]^2_{y=1})$')
-	#''
-	phidx = sX[0,:]
-	phidy = sY[0,:]
-	plt.plot(phidx, phidy, 'r',  linewidth=2., label = '$Im([0,1]^2_{x=0})$')
-	# ...
-	phidx = sX[nbpts-1,:]
-	phidy = sY[nbpts-1,:]
-	plt.plot(phidx, phidy, 'g', linewidth= 2., label = '$Im([0,1]^2_{x=1}$)')
+      plt.plot(phidx, phidy, '-k', linewidth = 0.25)
+   #plt.plot(u11_pH.toarray(), u12_pH.toarray(), 'ro', markersize=3.5)
+   #~~~~~~~~~~~~~~~~~~~~
+   #.. Plot the surface
+   phidx = sX[:,0]
+   phidy = sY[:,0]
+   plt.plot(phidx, phidy, 'm', linewidth=2., label = '$Im([0,1]^2_{y=0})$')
+   # ...
+   phidx = sX[:,nbpts-1]
+   phidy = sY[:,nbpts-1]
+   plt.plot(phidx, phidy, 'b', linewidth=2. ,label = '$Im([0,1]^2_{y=1})$')
+   #''
+   phidx = sX[0,:]
+   phidy = sY[0,:]
+   plt.plot(phidx, phidy, 'r',  linewidth=2., label = '$Im([0,1]^2_{x=0})$')
+   # ...
+   phidx = sX[nbpts-1,:]
+   phidy = sY[nbpts-1,:]
+   plt.plot(phidx, phidy, 'g', linewidth= 2., label = '$Im([0,1]^2_{x=1}$)')
 
-	#plt.xlim([-0.075,0.1])
-	#plt.ylim([-0.25,-0.1])
-	plt.axis('off')
-	plt.margins(0,0)
-	fig.tight_layout()
-	plt.savefig('figs/'+str(image_name[8:11])+'_Geom_adaptive_meshes.png')
-	plt.show(block=False)
-	plt.close()
-	
-	fig, axes =plt.subplots() 
-	#levels = np.linspace(np.min(det),np.max(det), 150)
-	levels = np.linspace(np.min(rho_Im),np.max(rho_Im), 100)
-	plt.contourf( sX, sY, rho_Im, levels, cmap= 'gray')
-	fig.tight_layout()
-	plt.savefig('figs/r_refinement.png')
-	plt.show(block=False)
-	plt.close()
+   #plt.xlim([-0.075,0.1])
+   #plt.ylim([-0.25,-0.1])
+   plt.axis('off')
+   plt.margins(0,0)
+   fig.tight_layout()
+   plt.savefig('figs/'+str(image_name[8:11])+'_Geom_adaptive_meshes.png')
+   plt.show(block=False)
+   plt.close()
+
+   fig, axes =plt.subplots() 
+   #levels = np.linspace(np.min(det),np.max(det), 150)
+   levels = np.linspace(np.min(rho_Im),np.max(rho_Im), 100)
+   plt.contourf( sX, sY, rho_Im, levels, cmap= 'gray')
+   fig.tight_layout()
+   plt.savefig('figs/r_refinement.png')
+   plt.show(block=False)
+   plt.close()

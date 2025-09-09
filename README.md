@@ -9,7 +9,7 @@ Isogeometric Analysis-Based Adaptive Mesh Generation for Image Registration Usin
 
 # For simplines :
 
-  https://github.com/Bahari95/simplines
+  https://github.com/Bahari95/pyrefiga
 
 ## Example
 

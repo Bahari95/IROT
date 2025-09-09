@@ -6,31 +6,26 @@ ImageRegistrationGenerate.py
 
 @author : M. BAHARI
 """
-from   simplines                    import compile_kernel
-from   simplines                    import SplineSpace
-from   simplines                    import TensorSpace
-from   simplines                    import StencilMatrix
-from   simplines                    import StencilVector
-from   simplines                    import pyccel_sol_field_2d
-from   simplines                    import quadratures_in_admesh
+from   pyrefiga                    import compile_kernel
+from   pyrefiga                    import SplineSpace
+from   pyrefiga                    import TensorSpace
+from   pyrefiga                    import StencilMatrix
+from   pyrefiga                    import StencilVector
+from   pyrefiga                    import pyccel_sol_field_2d
+from   pyrefiga                    import quadratures_in_admesh
+from   pyrefiga                    import assemble_stiffness1D
+from   pyrefiga                    import assemble_mass1D
+from   pyrefiga                    import assemble_matrix_ex01
+from   pyrefiga                    import assemble_matrix_ex02
 #.. Prologation by knots insertion matrix
-from   simplines                    import prolongation_matrix
+from   pyrefiga                    import prolongation_matrix
 # ... Using Kronecker algebra accelerated with Pyccel
-from   simplines                    import Poisson
+from   pyrefiga                    import Poisson
 #--- Image registration
 from   interpolimage import         image_in_quadraturpoints
 from   interpolimage import         image_in_uniformpoints
 
-from gallery_section_20 import assemble_stiffnessmatrix1D
-from gallery_section_20 import assemble_massmatrix1D
-from gallery_section_20 import assemble_matrix_ex11
-from gallery_section_20 import assemble_matrix_ex12
 from gallery_section_20 import assemble_Quality_ex01
-
-assemble_stiffness1D = compile_kernel( assemble_stiffnessmatrix1D, arity=2)
-assemble_mass1D      = compile_kernel( assemble_massmatrix1D, arity=2)
-assemble_matrix_ex01 = compile_kernel(assemble_matrix_ex11, arity=1)
-assemble_matrix_ex02 = compile_kernel(assemble_matrix_ex12, arity=1)
 assemble_Quality     = compile_kernel(assemble_Quality_ex01, arity=1)
 
 #---mae : In Monge-Ampere equation
@@ -337,7 +332,7 @@ Pi = Picard(Vm1, Vm2, V1, V2, V00, V11, V01, V10)
 #image_name = "figures/flower.jpeg"
 #...  test 3
 #image_name = "figures/grayscal.jpg"
-#image_name = "figures/print.jpg"
+image_name = "figures/hors.png"
 #image_name = "figures/1000_F.jpg"
 #image_name = "figures/mandelboring.png"
 #image_name = "figures/optical_illusion.jpeg"
@@ -346,7 +341,7 @@ Pi = Picard(Vm1, Vm2, V1, V2, V00, V11, V01, V10)
 #...  test 5
 #image_name = "figures/brain_mri_transversal_t2_003.jpg"
 #...  test 6
-image_name = "figures/hand.jpeg"
+#image_name = "figures/Rome.jpg"
 #...  test 7
 #image_name = "figures/Beautiful.png"
 # ...
@@ -359,7 +354,6 @@ image_array[:,:] = image_in_quadraturpoints(VH1.points, VH2.points,image_name).T
 #... computation of the optimal mapping using last solution 
 print('#---IN-Adapted--MESH')
 u_rho_H, x_rho    = Pr_h_solve(VH1, VH2, VH1, VH2, image_array)
-
 np.savetxt(image_name[8:]+str(VH1.nelements)+'.txt', x_rho, fmt='%.20e')
 niter   = 30
 # ... new discretization for plot

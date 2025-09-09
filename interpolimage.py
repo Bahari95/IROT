@@ -11,9 +11,8 @@ import numpy as np
 from PIL import Image
 
 # importing bsplines utilities
-from simplines import find_span, point_on_bspline_surface, insert_knot_bspline_surface, insert_knot_nurbs_surface
+from pyrefiga import find_span, point_on_bspline_surface, insert_knot_bspline_surface, insert_knot_nurbs_surface
 
-from pyccel.decorators import types
 from pyccel.epyccel import epyccel
 #==============================================================================
 #  for figures 
@@ -22,8 +21,7 @@ import os
 os.makedirs("figs", exist_ok=True)  # 'exist_ok=True' prevents errors if the folder already exists
 #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 # Computes Solution and its gradien In two dimension
-@types('int', 'int', 'int', 'int', 'float[:,:]', 'float[:,:]', 'float[:,:]', 'float[:]', 'float[:]', 'int', 'int', 'double[:,:,:]')
-def sol_field_2D_meshes(ne1, ne2, k1, k2, xs, ys, uh, Tu, Tv, pu, pv, Q):
+def sol_field_2D_meshes(ne1:'int', ne2:'int', k1:'int', k2:'int', xs:'float[:,:]', ys:'float[:,:]', uh:'float[:,:]', Tu:'float[:]', Tv:'float[:]', pu:'int', pv:'int', Q:'float64[:,:,:]'):
     # Using computed control points U we compute solution
     # in new discretisation by Npoints
     
@@ -283,8 +281,7 @@ def image_in_quadraturpoints(points_1, points_2,  image_name, knots = None, degr
 
 #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 # Computes Solution and its gradien In two dimension
-@types('int', 'int', 'float[:,:]', 'float[:]', 'float[:]', 'int', 'int', 'double[:,:,:]')
-def sol_field_2D_un_meshes(nx, ny, uh, Tu, Tv, pu, pv, Q):
+def sol_field_2D_un_meshes(nx:'int', ny:'int', uh:'float[:,:]', Tu:'float[:]', Tv:'float[:]', pu:'int', pv:'int', Q:'float64[:,:,:]'):
     # Using computed control points U we compute solution
     # in new discretisation by Npoints
     
