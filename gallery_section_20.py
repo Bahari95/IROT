@@ -1,133 +1,11 @@
-__all__ = ['assemble_matrix_ex0mae',
-           'assemble_vector_ex0mae',
+__all__ = ['assemble_vector_ex0mae',
            'assemble_residual_ex0mae',
            ' assemble_residual_ex0grad'
 ]
-
-
-#==============================================================================
-from pyccel.decorators import types
-
-# assembles stiffness matrix 1D
-#==============================================================================
-@types('int', 'int', 'int[:]', 'double[:,:,:,:]', 'double[:,:]', 'double[:,:]', 'double[:,:]')
-def assemble_stiffnessmatrix1D(ne, degree, spans, basis, weights, points,  matrix):
-
-    # ... sizes
-    k1 = weights.shape[1]
-    # ... build matrices
-    for ie1 in range(0, ne):
-            i_span_1 = spans[ie1]        
-            # evaluation dependant uniquement de l'element
-
-            for il_1 in range(0, degree+1):
-                i1 = i_span_1 - degree + il_1
-                for il_2 in range(0, degree+1):
-                            i2 = i_span_1 - degree + il_2
-                            v = 0.0
-                            for g1 in range(0, k1):
-                                
-                                    bi_x = basis[ie1, il_1, 1, g1]
-                                    bj_x = basis[ie1, il_2, 1, g1]
-                                    
-                                    wvol = weights[ie1, g1]
-                                    
-                                    v += bi_x * bj_x * wvol
-
-                            matrix[ degree+ i1, degree+ i2-i1]  += v
-
-# assembles mass matrix 1D
-#==============================================================================
-@types('int', 'int', 'int[:]', 'double[:,:,:,:]', 'double[:,:]', 'double[:,:]', 'double[:,:]')
-def assemble_massmatrix1D(ne, degree, spans, basis, weights, points, matrix):
-
-    # ... sizes
-    k1 = weights.shape[1]
-    # ... build matrices
-    for ie1 in range(0, ne):
-            i_span_1 = spans[ie1]        
-            # evaluation dependant uniquement de l'element
-
-            for il_1 in range(0, degree+1):
-                i1 = i_span_1 - degree + il_1
-                for il_2 in range(0, degree+1):
-                            i2 = i_span_1 - degree + il_2
-                            v = 0.0
-                            for g1 in range(0, k1):
-                                
-                                    bi_0 = basis[ie1, il_1, 0, g1]
-                                    bj_0 = basis[ie1, il_2, 0, g1]
-                                    
-                                    wvol = weights[ie1, g1]
-                                    
-                                    v += bi_0 * bj_0 * wvol
-
-                            matrix[degree+i1, degree+ i2-i1]  += v
-    # ...
-
-@types('int', 'int', 'int', 'int', 'int[:]', 'int[:]', 'double[:,:,:,:]', 'double[:,:,:,:]', 'double[:,:]', 'double[:,:]', 'double[:,:]', 'double[:,:]', 'double[:,:]')
-def assemble_matrix_ex11(ne1, ne2, p1, p2, spans_1, spans_2, basis_1, basis_2, weights_1, weights_2, points_1, points_2, matrix):
-
-    # ... sizes
-    k1 = weights_1.shape[1]
-
-    # ... build matrices
-    for ie1 in range(0, ne1):
-            i_span_1 = spans_1[ie1]  
-            i_span_2 = spans_2[ie1]      
-            # evaluation dependant uniquement de l'element
-
-            for il_1 in range(0, p1+1):
-                i1 = i_span_1 - p1 + il_1
-                for il_2 in range(0, p2+1):
-                            i2 = i_span_2 - p2 + il_2
-                            v  = 0.0
-                            for g1 in range(0, k1):
-                                
-                                    bi_x = basis_1[ie1, il_1, 1, g1]
-                                    bj_0 = basis_2[ie1, il_2, 0, g1]
-                                    
-                                    wvol = weights_1[ie1, g1]
-                                    
-                                    v += bi_x * bj_0 * wvol
-
-                            matrix[i1+p1,i2+p2]  += v
-    # ...
-
-
-@types('int', 'int', 'int', 'int', 'int[:]', 'int[:]', 'double[:,:,:,:]', 'double[:,:,:,:]', 'double[:,:]', 'double[:,:]', 'double[:,:]', 'double[:,:]', 'double[:,:]')
-def assemble_matrix_ex12(ne1, ne2, p1, p2, spans_1, spans_2, basis_1, basis_2, weights_1, weights_2, points_1, points_2, matrix):
-
-    # ... sizes
-    k1 = weights_1.shape[1]
-
-    # ... build matrices
-    for ie1 in range(0, ne1):
-            i_span_1 = spans_1[ie1]
-            i_span_2 = spans_2[ie1]        
-            # evaluation dependant uniquement de l'element
-
-            for il_1 in range(0, p1+1):
-                i1 = i_span_1 - p1 + il_1
-                for il_2 in range(0, p2+1):
-                            i2 = i_span_2 - p2 + il_2
-                            v  = 0.0
-                            for g1 in range(0, k1):
-                                
-                                    bi_0 = basis_1[ie1, il_1, 0, g1]
-                                    bj_x = basis_2[ie1, il_2, 1, g1]
-                                    
-                                    wvol = weights_1[ie1, g1]
-                                    
-                                    v += bi_0 * bj_x * wvol
-
-                            matrix[i1+p1,i2+p2]  += v
-    # ...
 #==============================================================================   
 #---Assemble rhs of Mixed-BFO-Picard-Monge-Ampere equation
 #==============================================================================
-@types('int', 'int', 'int', 'int', 'int', 'int', 'int', 'int','int', 'int', 'int', 'int', 'int[:]', 'int[:]','int[:]', 'int[:]','int[:]', 'int[:]', 'double[:,:,:,:]', 'double[:,:,:,:]',  'double[:,:,:,:]', 'double[:,:,:,:]', 'double[:,:,:,:]', 'double[:,:,:,:]', 'double[:,:]', 'double[:,:]', 'double[:,:]', 'double[:,:]', 'double[:,:]', 'double[:,:]', 'double[:,:]', 'double[:,:]', 'double[:,:]', 'double[:,:]',  'double[:,:]', 'double[:,:]', 'double[:,:]', 'double[:,:]', 'double[:,:]', 'int[:,:,:,:]', 'int[:,:,:,:]', 'double[:,:,:,:,:,:]', 'double[:,:,:,:,:,:]',  'double[:,:]')
-def assemble_vector_ex0mae(ne1, ne2, ne3, ne4, ne5, ne6, p1, p2, p3, p4, p5, p6, spans_1, spans_2,  spans_3, spans_4, spans_5, spans_6, basis_1, basis_2, basis_3, basis_4, basis_5, basis_6, weights_1, weights_2, weights_3, weights_4, weights_5, weights_6, points_1, points_2, points_3, points_4, points_5, points_6, vector_u, vector_w, vector_z, spans_ad1, spans_ad2, basis_ad1, basis_ad2, rhs):
+def assemble_vector_ex0mae(ne1:'int', ne2:'int', ne3:'int', ne4:'int', ne5:'int', ne6:'int', p1:'int', p2:'int', p3:'int', p4:'int', p5:'int', p6:'int', spans_1:'int[:]', spans_2:'int[:]',  spans_3:'int[:]', spans_4:'int[:]', spans_5:'int[:]', spans_6:'int[:]', basis_1:'float64[:,:,:,:]', basis_2:'float64[:,:,:,:]', basis_3:'float64[:,:,:,:]', basis_4:'float64[:,:,:,:]', basis_5:'float64[:,:,:,:]', basis_6:'float64[:,:,:,:]', weights_1:'float64[:,:]', weights_2:'float64[:,:]', weights_3:'float64[:,:]', weights_4:'float64[:,:]', weights_5:'float64[:,:]', weights_6:'float64[:,:]', points_1:'float64[:,:]', points_2:'float64[:,:]', points_3:'float64[:,:]', points_4:'float64[:,:]', points_5:'float64[:,:]', points_6:'float64[:,:]', vector_u:'float64[:,:]', vector_w:'float64[:,:]', vector_z:'float64[:,:]', vector_z2:'float64[:,:]', spans_ad1:'int[:,:,:,:]', spans_ad2:'int[:,:,:,:]', basis_ad1:'double[:,:,:,:,:,:]', basis_ad2:'double[:,:,:,:,:,:]', rhs:'double[:,:]'):
 
     from numpy import exp
     from numpy import cos
@@ -290,8 +168,7 @@ def assemble_vector_ex0mae(ne1, ne2, ne3, ne4, ne5, ne6, p1, p2, p3, p4, p5, p6,
     # ...
         
 #==============================================================================   
-@types('int', 'int', 'int', 'int', 'int', 'int', 'int', 'int', 'int[:]', 'int[:]', 'int[:]', 'int[:]', 'double[:,:,:,:]', 'double[:,:,:,:]', 'double[:,:,:,:]', 'double[:,:,:,:]', 'double[:,:]', 'double[:,:]', 'double[:,:]', 'double[:,:]', 'double[:,:]', 'double[:,:]', 'double[:,:]', 'double[:,:]', 'double[:,:]', 'double[:,:]')
-def assemble_vector_rhsmae(ne1, ne2, ne3, ne4,  p1, p2, p3, p4, spans_1, spans_2, spans_3, spans_4, basis_1, basis_2, basis_3, basis_4, weights_1, weights_2, weights_3, weights_4, points_1, points_2, points_3, points_4, vector_w, rhs):
+def assemble_vector_rhsmae(ne1:'int', ne2:'int', ne3:'int', ne4:'int',  p1:'int', p2:'int', p3:'int', p4:'int', spans_1:'int[:]', spans_2:'int[:]', spans_3:'int[:]', spans_4:'int[:]', basis_1:'float[:,:,:,:]', basis_2:'float[:,:,:,:]', basis_3:'float[:,:,:,:]', basis_4:'float[:,:,:,:]', weights_1:'float[:,:]', weights_2:'float[:,:]', weights_3:'float[:,:]', weights_4:'float[:,:]', points_1:'float[:,:]', points_2:'float[:,:]', points_3:'float[:,:]', points_4:'float[:,:]', vector_w:'float[:,:]', rhs:'float[:,:]'):
 
     from numpy import exp
     from numpy import cos
@@ -382,8 +259,7 @@ def assemble_vector_rhsmae(ne1, ne2, ne3, ne4,  p1, p2, p3, p4, spans_1, spans_2
 
 # Assembles Quality of mesh adaptation
 #==============================================================================
-@types('int', 'int', 'int', 'int','int', 'int', 'int', 'int', 'int[:]', 'int[:]','int[:]', 'int[:]', 'double[:,:,:,:]', 'double[:,:,:,:]', 'double[:,:,:,:]', 'double[:,:,:,:]', 'double[:,:]', 'double[:,:]', 'double[:,:]', 'double[:,:]','double[:,:]', 'double[:,:]', 'double[:,:]', 'double[:,:]', 'double[:,:]', 'double[:,:]', 'real', 'double[:,:]')
-def assemble_Quality_ex01(ne1, ne2, ne3, ne4, p1, p2, p3, p4, spans_1, spans_2,  spans_3, spans_4, basis_1, basis_2, basis_3, basis_4, weights_1, weights_2, weights_3, weights_4, points_1, points_2, points_3, points_4, vector_u, vector_w, times, rhs):
+def assemble_Quality_ex01(ne1:'int', ne2:'int', ne3:'int', ne4:'int',  p1:'int', p2:'int', p3:'int', p4:'int', spans_1:'int[:]', spans_2:'int[:]', spans_3:'int[:]', spans_4:'int[:]', basis_1:'float[:,:,:,:]', basis_2:'float[:,:,:,:]', basis_3:'float[:,:,:,:]', basis_4:'float[:,:,:,:]', weights_1:'float[:,:]', weights_2:'float[:,:]', weights_3:'float[:,:]', weights_4:'float[:,:]', points_1:'float[:,:]', points_2:'float[:,:]', points_3:'float[:,:]', points_4:'float[:,:]', vector_u:'float[:,:]', vector_w:'float[:,:]', times:'float', rhs:'float[:,:]'):
 
     from numpy import exp
     from numpy import cos
