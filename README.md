@@ -7,7 +7,7 @@ Isogeometric Analysis-Based Adaptive Mesh Generation for Image Registration Usin
   
   https://github.com/pyccel/pyccel
 
-# For simplines :
+# For pyrefiga :
 
   https://github.com/Bahari95/pyrefiga
 
