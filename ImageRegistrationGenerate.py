@@ -6,17 +6,15 @@ ImageRegistrationGenerate.py
 
 @author : M. BAHARI
 """
-from   pyrefiga                    import compile_kernel
+from   pyrefiga                    import compile_kernel, apply_dirichlet
 from   pyrefiga                    import SplineSpace
 from   pyrefiga                    import TensorSpace
 from   pyrefiga                    import StencilMatrix
 from   pyrefiga                    import StencilVector
 from   pyrefiga                    import pyccel_sol_field_2d
 from   pyrefiga                    import quadratures_in_admesh
-from   pyrefiga                    import assemble_stiffness1D
 from   pyrefiga                    import assemble_mass1D
 from   pyrefiga                    import assemble_matrix_ex01
-from   pyrefiga                    import assemble_matrix_ex02
 #.. Prologation by knots insertion matrix
 from   pyrefiga                    import prolongation_matrix
 # ... Using Kronecker algebra accelerated with Pyccel
@@ -56,97 +54,21 @@ import time
 
 #==============================================================================
 #.......Picard BFO ALGORITHM
-
 #==============================================================================
 class Picard(object):
-    def __init__(self, V1, V2, V3, V4, V00, V11, V01, V10):
+    def __init__(self, V1, V2, V3, V4):
        #___
-       I1         = np.eye(V3.nbasis)
-       I2         = np.eye(V4.nbasis)
+       # create the tensor space
+       V11 = TensorSpace(V4, V3)
+       V01 = TensorSpace(V1, V3)
+       V10 = TensorSpace(V4, V2)
+       Vmae= TensorSpace(V1, V2, V3, V4)
 
        # .. computes basis and sopans in adapted quadrature
-       V          = TensorSpace(V1, V2, V3, V4)
-       self.Quad  = quadratures_in_admesh(V)
-       #... We delete the first and the last spline function
-       #.. as a technic for applying Neumann boundary condition
-       #.in a mixed formulation
+       self.Quad  = quadratures_in_admesh(Vmae, V00, nders = 0)
 
-       #..Stiffness and Mass matrix in 1D in the first deriction
-       D1         = assemble_mass1D(V3)
-       D1         = D1.tosparse()
-       D1         = D1.toarray()
-       D1         = csr_matrix(D1)
-       #___
-       M1         = assemble_mass1D(V1)
-       M1         = M1.tosparse()
-       m1         = M1
-       M1         = M1.toarray()[1:-1,1:-1]
-       M1         = csc_matrix(M1)
-       m1         = csr_matrix(m1)
-
-       #..Stiffness and Mass matrix in 1D in the second deriction
-       D2         = assemble_mass1D(V4)
-       D2         = D2.tosparse()
-       D2         = D2.toarray()
-       D2         = csr_matrix(D2)
-       #___
-       M2         = assemble_mass1D(V2)
-       M2         = M2.tosparse()
-       m2         = M2
-       M2         = M2.toarray()[1:-1,1:-1]
-       M2         = csc_matrix(M2)
-       m2         = csr_matrix(m2)
-
-       #...
-       R1         = assemble_matrix_ex01(V01)
-       R1         = R1.toarray()
-       R1         = R1.reshape(V01.nbasis)
-       r1         = R1.T
-       R1         = R1[1:-1,:].T
-       R1         = csr_matrix(R1)
-       r1         = csr_matrix(r1)
-       #___
-       R2         = assemble_matrix_ex02(V10)
-       R2         = R2.toarray()
-       R2         = R2.reshape(V10.nbasis)
-       r2         = R2
-       R2         = R2[:,1:-1]
-       R2         = csr_matrix(R2)
-       r2         = csr_matrix(r2)
-
-       #...step 0.1
-       mats_1     = [M1, M1]
-       mats_2     = [D2, D2]
-
-       # ...Fast Solver
-       poisson_c1 = Poisson(mats_1, mats_2)
-              
-       #...step 0.2
-       mats_1     = [D1, D1]
-       mats_2     = [M2, M2]
-
-       # ...Fast Solver
-       poisson_c2 = Poisson(mats_1, mats_2)
-       
-       #...step 1
-       M1         = sla.inv(M1)
-       A1         = M1.dot(R1.T)
-       K1         = R1.dot( A1)
-       K1         = csr_matrix(K1)
-       #___
-       M2         = sla.inv(M2)
-       A2         = M2.dot( R2.T)
-       K2         = R2.dot( A2)
-       K2         = csr_matrix(K2)
-
-       #...step 2
-       mats_1     = [D1, K1]
-       mats_2     = [D2, K2]
-
-       # ...Fast Solver
-       poisson    = Poisson(mats_1, mats_2)
-
-       #  ... Strong form of Neumann boundary condition which is Dirichlet because of Mixed formulation
+       #----------------------------------------------------------------------------------------------
+       # ... Strong form of Neumann boundary condition which is Dirichlet because of Mixed formulation
        u_01       = StencilVector(V01.vector_space)
        u_10       = StencilVector(V10.vector_space)
        #..
@@ -156,33 +78,89 @@ class Picard(object):
        x_D[-1, :] = 1. 
        y_D[:, -1] = 1.
        #..
-       #..
        u_01.from_array(V01, x_D)
        u_10.from_array(V10, y_D)
+       del x_D
+       del y_D
+
+       #___
+       I1         = np.eye(V4.nbasis)
+       I2         = np.eye(V3.nbasis)
+       #... We delete the first and the last spline function
+       #.. as a technic for applying Neumann boundary condition
+       #.in a mixed formulation
+
+       #..Stiffness and Mass matrix in 1D in the first deriction
+       D1         = assemble_mass1D(V4)
+       D1         = D1.tosparse()
+       #___
+       M1         = assemble_mass1D(V1)
+       m1         = apply_dirichlet(V1, M1, [True, False])
+       M1         = apply_dirichlet(V1, M1)
+ 
+       #..Stiffness and Mass matrix in 1D in the second deriction
+       D2         = assemble_mass1D(V3)
+       D2         = D2.tosparse()
+       #___
+       M2         = assemble_mass1D(V2)
+       m2         = apply_dirichlet(V2, M2, [True, False])
+       M2         = apply_dirichlet(V2, M2)
+
+       #...
+       V14        = TensorSpace(V1, V4)
+       R1         = assemble_matrix_ex01(V14)
+       R1         = R1.toarray().reshape(V14.nbasis)
+       r1         = csr_matrix(R1.T)
+       R1         = csr_matrix(R1[1:-1,:])
+       #___
+       V23        = TensorSpace(V2, V3)
+       R2         = assemble_matrix_ex01(V23)
+       r2         = R2
+       R2         = R2.toarray().reshape(V23.nbasis)
+       r2         = csr_matrix(R2)
+       R2         = csr_matrix(R2[1:-1,:])
+       
+       #...step 1
+       M1         = sla.inv(csc_matrix(M1)) #... I don't know if I can avoid the inverse TODO
+       A1         = M1.dot(R1)
+       K1         = R1.T.dot( A1)
+       K1         = csr_matrix(K1)
+       #___
+       M2         = sla.inv(csc_matrix(M2))
+       A2         = M2.dot( R2)
+       K2         = R2.T.dot( A2)
+       K2         = csr_matrix(K2)
+
+       #...step 2
+       mats_1     = [D1, K1]
+       mats_2     = [D2, K2]
+
+       # ...Fast Solver
+       poisson    = Poisson(mats_1, mats_2)
+
        #...non homogenoeus Neumann boundary 
        b01        = -kron(r1, D2).dot(u_01.toarray())
        #__
-       b10        = -kron(D1, r2).dot( u_10.toarray())
-       self.b_0   = b01 + b10
+       b10        = -kron(D1, r2.T).dot( u_10.toarray())
        #...
-       b11        = -kron(m1[1:-1,:], D2).dot(u_01.toarray())
+       b11        = -kron(m1, D2).dot(u_01.toarray())
        #___
-       b12        = -kron(D1, m2[1:-1,:]).dot(u_10.toarray())
-       
-       #___Solve first system
-       self.r_0   =  kron(A1.T, I2).dot(b11) + kron(I1, A2.T).dot(b12)
+       b12        = -kron(D1, m2).dot(u_10.toarray())
 
+       #___Solve first system
+       self.r_0        =  kron(A1.T, I2).dot(b11) + kron(I1, A2.T).dot(b12) - b01 - b10
        #___
-       self.x11_1 = kron(A1, I2)
-       self.x12_1 = kron(I1, A2)
+       self.x11_1      = kron(A1, I2)
+       self.x12_1      = kron(I1, A2)
        #___
-       self.C1    = poisson_c1.solve(2.*b11)
-       self.C2    = poisson_c2.solve(2.*b12)
+       self.C1         = -kron(M1.dot(m1), I2).dot(u_01.toarray())
+       self.C2         = -kron(I1, M2.dot(m2)).dot(u_10.toarray())
+       # ... for assembling residual
+       self.M_res      = kron(D1, D2)
+       self.spaces     = [V1, V2, V3, V4, V11, V01, V10]
+       self.poisson    = poisson
+       #___       
         
-       self.spaces = [V1, V2, V3, V4, V11, V01, V10]
-       self.poisson= poisson
-       self.D1 = D1
-       self.D2 = D2
     def solve(self, V= None, x_01 = None, x_10 = None, u_H = None, niter = None):
 
         V1, V2, V3, V4, V11, V01, V10    = self.spaces[:]
@@ -226,7 +204,7 @@ class Picard(object):
             l2_residual = 0.
             x_2     = zeros(V3.nbasis*V4.nbasis)
         # ... for assembling residual
-        M_res      = kron(self.D1, self.D2)
+        M_res      = self.M_res
         for i in range(niter) :          
            
                    # ... computes spans and basis in adapted quadrature 
@@ -235,7 +213,7 @@ class Picard(object):
                    rhs          = StencilVector(V11.vector_space)
                    rhs          = assemble_rhsmae(V, fields = [u11, u12, u_H], value = [spans_ad1, spans_ad2, basis_ad1, basis_ad2], out= rhs)
                    b            = rhs.toarray()
-                   b            = self.b_0 + b.reshape(V4.nbasis*V3.nbasis)
+                   b            = b.reshape(V4.nbasis*V3.nbasis)
                    #___
                    r            = self.r_0 - b
            
@@ -323,7 +301,7 @@ Vmh = TensorSpace(Vm1, Vm2, V1, V2, VH1, VH2)
 
 
 #... Computes the tools for Mixed V-F of MAE
-Pi = Picard(Vm1, Vm2, V1, V2, V00, V11, V01, V10)
+Pi = Picard(Vm1, Vm2, V1, V2)
 
 #--------------§§§!!!!!! replace the image's name by the new one
 #...  test 1
@@ -331,19 +309,18 @@ Pi = Picard(Vm1, Vm2, V1, V2, V00, V11, V01, V10)
 #...  test 2 Flower
 #image_name = "figures/flower.jpeg"
 #...  test 3
-#image_name = "figures/grayscal.jpg"
-image_name = "figures/hors.png"
+# image_name = "figures/grayscal.jpg"
 #image_name = "figures/1000_F.jpg"
 #image_name = "figures/mandelboring.png"
 #image_name = "figures/optical_illusion.jpeg"
 #...  test 4
-#image_name = "figures/cat.jpg"
+image_name = "figures/hq720.jpg"
 #...  test 5
 #image_name = "figures/brain_mri_transversal_t2_003.jpg"
 #...  test 6
 #image_name = "figures/Rome.jpg"
 #...  test 7
-#image_name = "figures/Beautiful.png"
+# image_name = "figures/T2brain.png"
 # ...
 print(image_name)
 # ...
@@ -408,7 +385,7 @@ for n in range(5,nb_ne+1):
 	Vh10 = TensorSpace(V2, Vm2)
 
 	#... Computes the tools for Mixed V-F of MAE
-	Pi = Picard(Vm1, Vm2, V1, V2, V00, V11, Vh01, Vh10)
+	Pi = Picard(Vm1, Vm2, V1, V2)
 	#.. Prologation by knots insertion matrix
 	M           = prolongation_matrix(V01, Vh01)
 	x11_mae     = (M.dot(u11H_mae.toarray())).reshape(Vh01.nbasis)

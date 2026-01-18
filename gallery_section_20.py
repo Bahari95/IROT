@@ -5,7 +5,7 @@ __all__ = ['assemble_vector_ex0mae',
 #==============================================================================   
 #---Assemble rhs of Mixed-BFO-Picard-Monge-Ampere equation
 #==============================================================================
-def assemble_vector_ex0mae(ne1:'int', ne2:'int', ne3:'int', ne4:'int', ne5:'int', ne6:'int', p1:'int', p2:'int', p3:'int', p4:'int', p5:'int', p6:'int', spans_1:'int[:]', spans_2:'int[:]',  spans_3:'int[:]', spans_4:'int[:]', spans_5:'int[:]', spans_6:'int[:]', basis_1:'float64[:,:,:,:]', basis_2:'float64[:,:,:,:]', basis_3:'float64[:,:,:,:]', basis_4:'float64[:,:,:,:]', basis_5:'float64[:,:,:,:]', basis_6:'float64[:,:,:,:]', weights_1:'float64[:,:]', weights_2:'float64[:,:]', weights_3:'float64[:,:]', weights_4:'float64[:,:]', weights_5:'float64[:,:]', weights_6:'float64[:,:]', points_1:'float64[:,:]', points_2:'float64[:,:]', points_3:'float64[:,:]', points_4:'float64[:,:]', points_5:'float64[:,:]', points_6:'float64[:,:]', vector_u:'float64[:,:]', vector_w:'float64[:,:]', vector_z:'float64[:,:]', vector_z2:'float64[:,:]', spans_ad1:'int[:,:,:,:]', spans_ad2:'int[:,:,:,:]', basis_ad1:'double[:,:,:,:,:,:]', basis_ad2:'double[:,:,:,:,:,:]', rhs:'double[:,:]'):
+def assemble_vector_ex0mae(ne1:'int', ne2:'int', p1:'int', p2:'int', p3:'int', p4:'int', p5:'int', p6:'int', spans_1:'int[:]', spans_2:'int[:]',  spans_3:'int[:]', spans_4:'int[:]', spans_5:'int[:]', spans_6:'int[:]', basis_1:'float64[:,:,:,:]', basis_2:'float64[:,:,:,:]', basis_3:'float64[:,:,:,:]', basis_4:'float64[:,:,:,:]', basis_5:'float64[:,:,:,:]', basis_6:'float64[:,:,:,:]', weights_1:'float64[:,:]', weights_2:'float64[:,:]', points_1:'float64[:,:]', points_2:'float64[:,:]', vector_u:'float64[:,:]', vector_w:'float64[:,:]', vector_z:'float64[:,:]', spans_ad1:'int[:,:,:,:]', spans_ad2:'int[:,:,:,:]', basis_ad1:'double[:,:,:,:,:,:]', basis_ad2:'double[:,:,:,:,:,:]', rhs:'double[:,:]'):
 
     from numpy import exp
     from numpy import cos
@@ -19,8 +19,8 @@ def assemble_vector_ex0mae(ne1:'int', ne2:'int', ne3:'int', ne4:'int', ne5:'int'
     k1 = weights_1.shape[1]
     k2 = weights_2.shape[1]
     # ...
-    k5 = weights_5.shape[1]
-    k6 = weights_6.shape[1]
+    k5 = weights_1.shape[1]
+    k6 = weights_2.shape[1]
     # ...
     lcoeffs_u  = zeros((p1+1,p3+1))
     lcoeffs_w  = zeros((p4+1,p2+1))
@@ -30,9 +30,9 @@ def assemble_vector_ex0mae(ne1:'int', ne2:'int', ne3:'int', ne4:'int', ne5:'int'
 
     #--Computes coefficient of ratio in MAE = int rho_1/int rho_0
     C_ratio = 0.0
-    for ie1 in range(0, ne5):
+    for ie1 in range(0, ne1):
         i_span_5 = spans_5[ie1]
-        for ie2 in range(0, ne6):
+        for ie2 in range(0, ne2):
             i_span_6 = spans_6[ie2]
     
             lcoeffs_z[ : , : ]  =  vector_z[i_span_5 : i_span_5+p5+1, i_span_6 : i_span_6+p6+1]
@@ -40,7 +40,7 @@ def assemble_vector_ex0mae(ne1:'int', ne2:'int', ne3:'int', ne4:'int', ne5:'int'
             for g1 in range(0, k5):
                 for g2 in range(0, k6):
 
-                    wvol     = weights_5[ie1, g1]*weights_6[ie2, g2]
+                    wvol     = weights_1[ie1, g1]*weights_2[ie2, g2]
                     u_p        = 0.0
                     for il_1 in range(0, p5+1):
                           for il_2 in range(0, p6+1):
@@ -72,7 +72,7 @@ def assemble_vector_ex0mae(ne1:'int', ne2:'int', ne3:'int', ne4:'int', ne5:'int'
             # ...
             for g1 in range(0, k1):
                 for g2 in range(0, k2):
-                    wvol       = weights_3[ie1, g1]*weights_4[ie2, g2]
+                    wvol       = weights_1[ie1, g1]*weights_2[ie2, g2]
 
                     #... We compute firstly the span in new adapted points
                     span_5    = spans_ad1[ie1, ie2, g1, g2]
@@ -168,7 +168,7 @@ def assemble_vector_ex0mae(ne1:'int', ne2:'int', ne3:'int', ne4:'int', ne5:'int'
     # ...
         
 #==============================================================================   
-def assemble_vector_rhsmae(ne1:'int', ne2:'int', ne3:'int', ne4:'int',  p1:'int', p2:'int', p3:'int', p4:'int', spans_1:'int[:]', spans_2:'int[:]', spans_3:'int[:]', spans_4:'int[:]', basis_1:'float[:,:,:,:]', basis_2:'float[:,:,:,:]', basis_3:'float[:,:,:,:]', basis_4:'float[:,:,:,:]', weights_1:'float[:,:]', weights_2:'float[:,:]', weights_3:'float[:,:]', weights_4:'float[:,:]', points_1:'float[:,:]', points_2:'float[:,:]', points_3:'float[:,:]', points_4:'float[:,:]', vector_w:'float[:,:]', rhs:'float[:,:]'):
+def assemble_vector_rhsmae(ne1:'int', ne2:'int',  p1:'int', p2:'int', p3:'int', p4:'int', spans_1:'int[:]', spans_2:'int[:]', spans_3:'int[:]', spans_4:'int[:]', basis_1:'float[:,:,:,:]', basis_2:'float[:,:,:,:]', basis_3:'float[:,:,:,:]', basis_4:'float[:,:,:,:]', weights_1:'float[:,:]', weights_2:'float[:,:]', points_1:'float[:,:]', points_2:'float[:,:]', vector_w:'float[:,:]', rhs:'float[:,:]'):
 
     from numpy import exp
     from numpy import cos
@@ -219,13 +219,13 @@ def assemble_vector_rhsmae(ne1:'int', ne2:'int', ne3:'int', ne4:'int',  p1:'int'
                     if uhk_min > rh_k :
                          uhk_min = rh_k
                  
-    #for ie1 in range(0, ne1):
+    # for ie1 in range(0, ne1):
     #    for ie2 in range(0, ne2):
     #        for g1 in range(0, k1):
     #            for g2 in range(0, k2):
-    #                if Sol_weith[ie1,ie2, g1, g2] >= uhk_min+0.5*uhk_max:
-    #                     Sol_weith[ie1,ie2, g1, g2] = uhk_min+0.5*uhk_max
-    #uhk_max = uhk_min+0.5*uhk_max
+    #                if Sol_weith[ie1,ie2, g1, g2] >= uhk_min+0.1*(uhk_min+uhk_max):
+    #                     Sol_weith[ie1,ie2, g1, g2] = uhk_min+0.1*(uhk_min+uhk_max)
+    # uhk_min = uhk_min+0.5*(uhk_min+uhk_max)
     if   (uhk_max-uhk_min) <= 1e-4  :
          int_uh_0 = 0.
          int_uh_1 = 1.
@@ -233,9 +233,9 @@ def assemble_vector_rhsmae(ne1:'int', ne2:'int', ne3:'int', ne4:'int',  p1:'int'
         int_uh_0 = (20.-0.5)/(uhk_max-uhk_min)
         int_uh_1  = (0.5*uhk_max-20.*uhk_min)/(uhk_max-uhk_min)
     # ... build rhs
-    for ie3 in range(0, ne3):
+    for ie3 in range(0, ne1):
         i_span_3 = spans_3[ie3]
-        for ie4 in range(0, ne4):
+        for ie4 in range(0, ne2):
             i_span_4 = spans_4[ie4]
 
             for il_1 in range(0, p3+1):
@@ -249,7 +249,7 @@ def assemble_vector_rhsmae(ne1:'int', ne2:'int', ne3:'int', ne4:'int',  p1:'int'
                             # ...
                             bi_0      = basis_3[ie3,il_1,0,g1]*basis_4[ie4,il_2,0,g2]
                             # ...
-                            wvol      = weights_3[ie3, g1]*weights_4[ie4, g2] 
+                            wvol      = weights_1[ie3, g1]*weights_2[ie4, g2] 
 
                             #...
                             v        += bi_0 *((int_uh_0 * Sol_weith[ie3,ie4, g1, g2] + int_uh_1) ) * wvol
@@ -259,7 +259,7 @@ def assemble_vector_rhsmae(ne1:'int', ne2:'int', ne3:'int', ne4:'int',  p1:'int'
 
 # Assembles Quality of mesh adaptation
 #==============================================================================
-def assemble_Quality_ex01(ne1:'int', ne2:'int', ne3:'int', ne4:'int',  p1:'int', p2:'int', p3:'int', p4:'int', spans_1:'int[:]', spans_2:'int[:]', spans_3:'int[:]', spans_4:'int[:]', basis_1:'float[:,:,:,:]', basis_2:'float[:,:,:,:]', basis_3:'float[:,:,:,:]', basis_4:'float[:,:,:,:]', weights_1:'float[:,:]', weights_2:'float[:,:]', weights_3:'float[:,:]', weights_4:'float[:,:]', points_1:'float[:,:]', points_2:'float[:,:]', points_3:'float[:,:]', points_4:'float[:,:]', vector_u:'float[:,:]', vector_w:'float[:,:]', times:'float', rhs:'float[:,:]'):
+def assemble_Quality_ex01(ne1:'int', ne2:'int',  p1:'int', p2:'int', p3:'int', p4:'int', spans_1:'int[:]', spans_2:'int[:]', spans_3:'int[:]', spans_4:'int[:]', basis_1:'float[:,:,:,:]', basis_2:'float[:,:,:,:]', basis_3:'float[:,:,:,:]', basis_4:'float[:,:,:,:]', weights_1:'float[:,:]', weights_2:'float[:,:]', points_1:'float[:,:]', points_2:'float[:,:]', vector_u:'float[:,:]', vector_w:'float[:,:]', times:'float', rhs:'float[:,:]'):
 
     from numpy import exp
     from numpy import cos

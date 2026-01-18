@@ -8,7 +8,7 @@ interpolimage.py
 # needed imports
 from PIL import Image
 import numpy as np
-from PIL import Image
+from skimage import io
 
 # importing bsplines utilities
 from pyrefiga import find_span, point_on_bspline_surface, insert_knot_bspline_surface, insert_knot_nurbs_surface
@@ -240,16 +240,13 @@ def image_in_quadraturpoints(points_1, points_2,  image_name, knots = None, degr
     
     #---SOME OPERATIONS IN iMAGE REGUISTRATION --- ++++ +++
     # Image.open() can also open other image types
-    img = Image.open( image_name)
-
+    img = io.imread(image_name, as_gray=True)
+    img_pil = Image.fromarray(img)
     # WIDTH and HEIGHT are integers
-    resized_img = img.resize((nu, nv))
+    image_array = np.array(img_pil.resize((nu, nv), resample=Image.BILINEAR))
 
-    image_sequence = resized_img.getdata()
-
-    image_array = np.array(image_sequence)
-    if image_array.ndim != 1 :
-       image_array = np.array(image_sequence)[:,0]
+    # if image_array.ndim != 1 :
+    #    image_array = np.array(image_array)[:,0]
 
     K = np.zeros((nu, nv,1))
     K[:,:,0] = image_array.reshape((nu, nv))
@@ -494,15 +491,13 @@ def image_in_uniformpoints(points_1, points_2, image_name, knots = None, degree 
 
     #---SOME OPERATIONS IN iMAGE REGUISTRATION -- -++++ +++
     # Image.open() can also open other image types
-    img = Image.open(image_name)
+    img = io.imread(image_name, as_gray=True)
+    img_pil = Image.fromarray(img)
     # WIDTH and HEIGHT are integers
-    resized_img = img.resize((nu, nv))
+    image_array = np.array(img_pil.resize((nu, nv), resample=Image.BILINEAR))
 
-    image_sequence = resized_img.getdata()
-
-    image_array = np.array(image_sequence)
-    if image_array.ndim != 1 :
-       image_array = np.array(image_sequence)[:,0]
+    # if image_array.ndim != 1 :
+    #    image_array = np.array(image_array)[:,0]
 
     K = np.zeros((nu, nv,1))
     K[:,:,0] = image_array.reshape((nu, nv))
